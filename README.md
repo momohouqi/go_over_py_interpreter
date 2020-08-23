@@ -39,7 +39,8 @@
   /usr/local/anaconda2/bin/python: can't find '__main__' module in 'xmlrpc/'
   ```
 
->See again from input scale: stdin, cmd_line, file, module, pcakge
+---
+Input scale: stdin, cmd_line, file, module, pcakge
 # Go Over Interpreter
 ![](res/interpreter.png)
 ## Interpreter
@@ -90,20 +91,54 @@ Traceback are hierarchical frames from new to old.
    - Finally, the value is pushed onto the data stack on the next frame down.
 # pyc and pyo
 ## pyc
-```
-python -m py_compile xxxx.py
-```
-compile a source file to byte-code.
 
+cached bytecode
+1. compile
+compile a source file to byte-code.
+    ```
+    python -m py_compile xxxx.py
+    ```
+2. Check before load
+   - it checks whether the cache is up-to-date with the source .py file.
+      - last-modified timestamp(default)
+      - hash(since 3.7)
+   - overwite the pyc file(pyo not updated) if not up-to-date
+ 
 ## pyo
 ```
 python -O -m py_compile xxxx.py
+python -OO -m py_compile xxxx.py
 ```
+Also need to use '-O' or '-OO' to startup the pyo.
+> But why tachyon_python not need?
+- PYTHONOPTIMIZE=YES was added
+#### Changed to pyc since 3.5
+- -O: xxx.cpython-35.opt-1.pyc
+- -OO: xxx.cpython-35.opt-2.pyc
+
+*???: how to use pyc if no original source files(OK for pyo)*
+
 module compileall can also do the same thing for pyc and pyo
 ```
 python -m compileall xxx.py
 python -OO -m compileall xxx.py
 ```
+# GIL
+Global Interpreter Lock
+## What?
+- used by the CPython interpreter 
+- to assure that only one thread executes Python **bytecode** at a time
+- thread will release GIL when interval timeout or meet IO
+## Why?
+- simplifies the CPython implementation by making the object model implicitly safe against concurrent access(refer count)
+- most of c libraries are not thread-safe
+## Impact?
+- extension modules, either standard or third-party, are designed so as to release the GIL when doing computationally-intensive tasks such as compression or hashing. Such as Numpy, ML modules
+-  Also, the GIL is always released when doing I/O.
+-  GIL is for interpreter implementation not for user application
+
+![](res/multiple_thread.jpg)
+
 # Other
 ## options
 - -O:
